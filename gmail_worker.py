@@ -29,15 +29,18 @@ GMAIL_SCOPES = [
 # ==================================================
 # GOOGLE SHEETS AUTH
 # ==================================================
-
 def authenticate_sheets():
 
     creds_dict = json.loads(os.environ["GOOGLE_CREDENTIALS"])
-    
+
     creds_dict["private_key"] = creds_dict["private_key"].replace("\\n", "\n")
 
-    return gspread.authorize(creds)
+    creds = Credentials.from_service_account_info(
+        creds_dict,
+        scopes=SHEETS_SCOPES
+    )
 
+    return gspread.authorize(creds)
 
 client = authenticate_sheets()
 
