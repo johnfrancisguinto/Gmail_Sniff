@@ -13,7 +13,7 @@ from googleapiclient.discovery import build
 # ==================================================
 # CONFIG
 # ==================================================
-
+print("Worker version 2025-07-06")
 SPREADSHEET_ID = "1Zx9yhlJb4gr8yKec7owh3xhwG36azWXhx4eK5WIYPR4"
 
 SHEETS_SCOPES = [
