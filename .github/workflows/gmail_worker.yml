@@ -1,10 +1,10 @@
 name: Gmail Worker
 
+
 on:
-  push:
   workflow_dispatch:
   schedule:
-    - cron: "*/5 * * * *"
+    - cron: "*/10 * * * *"
 
 jobs:
   run-worker:
