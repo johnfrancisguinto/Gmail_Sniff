@@ -32,14 +32,9 @@ GMAIL_SCOPES = [
 
 def authenticate_sheets():
 
-    # LOCAL VERSION
-    with open("imi-creds.json", "r") as f:
-        creds_dict = json.load(f)
-
-    creds = Credentials.from_service_account_info(
-        creds_dict,
-        scopes=SHEETS_SCOPES
-    )
+    creds_dict = json.loads(os.environ["GOOGLE_CREDENTIALS"])
+    
+    creds_dict["private_key"] = creds_dict["private_key"].replace("\\n", "\n")
 
     return gspread.authorize(creds)
 
@@ -54,9 +49,8 @@ client = authenticate_sheets()
 def authenticate_gmail():
 
     # LOCAL VERSION
-    with open("token.json", "r") as f:
-        token_data = json.load(f)
-
+    token_data = json.loads(os.environ["GMAIL_TOKEN"])
+    
     creds = UserCredentials.from_authorized_user_info(
         token_data,
         GMAIL_SCOPES
