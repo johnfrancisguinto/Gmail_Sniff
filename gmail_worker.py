@@ -9,6 +9,7 @@ from google.oauth2.service_account import Credentials
 from google.oauth2.credentials import Credentials as UserCredentials
 from googleapiclient.discovery import build
 
+from zoneinfo import ZoneInfo
 
 # ==================================================
 # CONFIG
@@ -116,11 +117,14 @@ def get_email_data(service, msg_id):
 
     email_time = pd.to_datetime(
         email_date,
-        errors="coerce"
+        errors="coerce",
+        utc=True
     )
 
     if pd.isna(email_time):
-        email_time = datetime.now()
+        email_time = datetime.now(ZoneInfo("Asia/Manila"))
+    else:
+        email_time = email_time.tz_convert("Asia/Manila")
 
     return subject, email_time
 
