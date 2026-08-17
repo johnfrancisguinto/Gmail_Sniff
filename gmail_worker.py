@@ -14,7 +14,6 @@ from zoneinfo import ZoneInfo
 # ==================================================
 # CONFIG
 # ==================================================
-print("Worker version 2025-07-06")
 SPREADSHEET_ID = "1Zx9yhlJb4gr8yKec7owh3xhwG36azWXhx4eK5WIYPR4"
 
 SHEETS_SCOPES = [
@@ -255,8 +254,7 @@ def is_duplicate(sheet_name, data):
 # ==================================================
 # APPEND DATA
 # ==================================================
-
-def append_to_sheet(sheet_name, data):
+def append_to_sheet(sheet_name, data,BCB_PN):
 
     try:
 
@@ -268,7 +266,8 @@ def append_to_sheet(sheet_name, data):
             data["datetime"],
             "FQC",
             data["serial_number"],
-            data["results"]
+            data["results"],"",
+            BCB_PN
         ])
 
         print(
@@ -304,6 +303,40 @@ def mark_as_read(service, msg_id):
         print(f"Mark read failed: {e}")
 
 
+def get_attachment_names(service, msg_id):
+    msg = service.users().messages().get(
+        userId="me",
+        id=msg_id,
+        format="full"
+    ).execute()
+
+    filenames = []
+
+    def walk_parts(parts):
+        for part in parts:
+            filename = part.get("filename")
+
+            if filename:
+                filenames.append(filename)
+
+            if "parts" in part:
+                walk_parts(part["parts"])
+
+    payload = msg.get("payload", {})
+
+    if "parts" in payload:
+        walk_parts(payload["parts"])
+
+    return filenames
+
+def extract_pack_id(filename):
+    match = re.search(r'PACK-([^_]+)', filename)
+
+    if match:
+        return match.group(1)
+
+    return None
+
 # ==================================================
 # MAIN PROCESSOR
 # ==================================================
@@ -323,10 +356,21 @@ def process_emails():
 
         print(f"Found {len(messages)} unread emails.")
 
+
         for msg in messages:
 
             msg_id = msg["id"]
 
+            attachments = get_attachment_names(service, msg_id)
+
+            if attachments:
+                for f in attachments:
+                    BCB_pn = extract_pack_id(f)
+                    if BCB_pn:
+                        break
+            else:
+                BCB_pn = ""
+                
             try:
 
                 subject, email_time = get_email_data(
@@ -358,7 +402,8 @@ def process_emails():
 
                     append_to_sheet(
                         sheet_name,
-                        data
+                        data,
+                        BCB_pn
                     )
 
                 else:
@@ -395,6 +440,7 @@ if __name__ == "__main__":
     print("Starting Gmail Worker")
     print("====================================")
 
+    authenticate_gmail()
     process_emails()
 
     print("====================================")
